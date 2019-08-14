@@ -5,6 +5,10 @@ use serde::Deserialize;
 type Result<T, E = Box<dyn std::error::Error>> = std::result::Result<T, E>;
 
 // Your scientists... Seriously, though, why the fuck did you write an INI reader?
+//
+// I think I have a plan: read from a pair of json files (mission profiles, boat profiles)
+// and use those to generate missions by combining the profile with the existing mission file.
+// You can do the same thing for campaigns, I expect.
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "PascalCase")]
