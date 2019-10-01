@@ -1,7 +1,7 @@
 pub mod error;
 pub mod parser;
 
-use parser::{ParseEvent, IniParser};
+use parser::parse_from_str;
 use serde::{de, Deserialize, forward_to_deserialize_any};
 use serde::de::{DeserializeSeed, Visitor};
 use std::iter::Peekable;
@@ -9,12 +9,12 @@ use std::iter::Peekable;
 pub type Result<T, E = error::IniError> = std::result::Result<T, E>;
 
 pub struct Deserializer<'input> {
-    events: Peekable<Box<dyn Iterator<Item = ParseEvent<'input>> + 'input>>,
+    events: Peekable<Box<dyn Iterator<Item = &'input str> + 'input>>,
 }
 
 impl<'input> Deserializer<'input> {
-    fn new(events: impl Iterator<Item = ParseEvent<'input>> + 'input) -> Self {
-        let events: Box<dyn Iterator<Item = ParseEvent>> = Box::new(events);
+    fn new(events: impl Iterator<Item = &'input str> + 'input) -> Self {
+        let events: Box<dyn Iterator<Item = &'input str>> = Box::new(events);
         Self {
             events: events.peekable(),
         }
@@ -48,7 +48,7 @@ pub fn from_str<'a, T>(s: &'a str) -> Result<T>
 where
     T: Deserialize<'a>,
 {
-    let events = IniParser::parse_from_str(s)?;
+    let events = parse_from_str(s);
     let mut deserializer = Deserializer::new(events);
     T::deserialize(&mut deserializer)
 }
@@ -68,7 +68,7 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer<'de> {
     where
         V: Visitor<'de>,
     {
-        visitor.visit_borrowed_str(self.events.next().ok_or(error::IniError::ExpectedString)?.into_str())
+        visitor.visit_borrowed_str(self.events.next().ok_or(error::IniError::ExpectedString)?)
     }
 
     fn deserialize_map<V>(mut self, visitor: V) -> Result<V::Value>

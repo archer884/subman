@@ -1,41 +1,66 @@
-use crate::ini;
-use pest::Parser;
-use pest_derive::Parser;
-
-#[derive(Debug, Parser)]
-#[grammar = "../resource/ini.pest"]
-pub struct IniParser;
-
 #[derive(Clone, Debug)]
-pub enum ParseEvent<'input> {
-    Section(&'input str),
-    Key(&'input str),
-    Value(&'input str),
+enum ParseEvent<'i> {
+    Section(&'i str),
+    Property {
+        key: &'i str,
+        value: &'i str,
+    }
 }
 
-impl<'a> ParseEvent<'a> {
-    pub fn into_str(self) -> &'a str {
+pub enum ParseEventIter<'i> {
+    SectionIter(u8, &'i str),
+    PropertyIter(u8, &'i str, &'i str),
+}
+
+impl ParseEventIter<'_> {
+    fn step(&mut self) {
         match self {
-            ParseEvent::Section(s) => s.trim_matches(|u| u == '[' || u == ']'),
-            ParseEvent::Key(s) => s,
-            ParseEvent::Value (s) => s,
+            ParseEventIter::SectionIter(ref mut step, _) => *step += 1,
+            ParseEventIter::PropertyIter(ref mut step, ..) => *step += 1,
         }
     }
 }
 
-impl IniParser {
-    pub fn parse_from_str<'input>(
-        s: &'input str,
-    ) -> ini::Result<impl Iterator<Item = ParseEvent> + 'input> {
-        Ok(IniParser::parse(Rule::File, s)?
-            .flatten()
-            .filter_map(|x| match x.as_rule() {
-                Rule::Section => Some(ParseEvent::Section(dbg!(x.as_str()))),
-                Rule::Key => Some(ParseEvent::Key(x.as_str())),
-                Rule::Value => Some(ParseEvent::Value(x.as_str())),
+impl<'i> Iterator for ParseEventIter<'i> {
+    type Item = &'i str;
 
-                // Uninteresting parse events will not be produced
-                _ => None, 
-            }))
+    fn next(&mut self) -> Option<Self::Item> {
+        self.step();
+        match self {
+            ParseEventIter::SectionIter(1, s) => Some(s),
+            ParseEventIter::PropertyIter(1, key, _) => Some(key),
+            ParseEventIter::PropertyIter(2, _, value) => Some(value),
+
+            _ => None,
+        }
     }
+}
+
+impl<'i> IntoIterator for ParseEvent<'i> {
+    type IntoIter = ParseEventIter<'i>;
+    type Item = &'i str;
+
+    fn into_iter(self) -> Self::IntoIter {
+        match self {
+            ParseEvent::Section(section) => ParseEventIter::SectionIter(0, section),
+            ParseEvent::Property { key, value } => ParseEventIter::PropertyIter(0, key, value),
+        }
+    }
+}
+
+pub fn parse_from_str(s: &str) -> impl Iterator<Item = &str> {
+    s.lines().filter_map(|line| match line.trim() {
+        line if line.starts_with('[') && line.ends_with(']') => Some(ParseEvent::Section(&line[1..(line.len() - 2)])),
+        line if line.starts_with("//") || line.is_empty() => None,
+        line => {
+            if let Some(boundary) = line.find('=') {
+                Some(ParseEvent::Property {
+                    key: &line[..boundary],
+                    value: &line[(boundary + 1)..],
+                })
+            } else {
+                None
+            }
+        }
+    }).flatten()
 }
