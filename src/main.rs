@@ -32,7 +32,7 @@ struct IniMissionProfile {
     // Renamed explicitly because BRITS CANNOT SPELL.
     #[serde(rename = "CombatBehaviour")]
     combat_behavior: String,
-    
+
     enemy_ship_classes: String,
     formation_cruise_speed: String,
     number_of_helicopters: String,

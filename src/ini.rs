@@ -2,8 +2,8 @@ pub mod error;
 pub mod parser;
 
 use parser::parse_from_str;
-use serde::{de, Deserialize, forward_to_deserialize_any};
 use serde::de::{DeserializeSeed, Visitor};
+use serde::{de, forward_to_deserialize_any, Deserialize};
 use std::iter::Peekable;
 
 pub type Result<T, E = error::IniError> = std::result::Result<T, E>;
@@ -55,11 +55,11 @@ where
 
 impl<'de> de::Deserializer<'de> for &mut Deserializer<'de> {
     type Error = error::IniError;
-    
+
     // The format we're dealing with ONLY supports strings, so... Yeah.
     fn deserialize_any<V>(self, visitor: V) -> Result<V::Value>
     where
-        V: de::Visitor<'de>
+        V: de::Visitor<'de>,
     {
         self.deserialize_str(visitor)
     }
