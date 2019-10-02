@@ -3,8 +3,7 @@ ShipType=SUBMARINE
 PlayerHUD=hud/default
 
 Year=2025
-PlayerFleetRegions=*
-EnemyFleetRegions=NorwegianSea
+OpForceRegions=NorwegianSeaPact
 
 Length=118
 Beam=11

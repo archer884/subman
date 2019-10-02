@@ -1,13 +1,22 @@
+mod poly;
 mod vessel;
 
 use std::fmt::{self, Display};
 use std::str::FromStr;
 pub use vessel::{Vessel, VesselData};
 
+/// Campaign regions
+///
+/// This enum describes those regions wherein a given vessel is a member of OP FORCE. For
+/// simplicity, the Nato/Pact/Whatever suffix refers to the player's faction. Note that the
+/// China Sea region does not have a suffix because the opposing force for all Chinese
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
 pub enum CampaignRegion {
-    ChinaSea,
-    NorwegianSea,
+    ChinaSeaNato,
+    ChinaSeaPlan,
+    NorwegianSeaBrit,
+    NorwegianSeaNato,
+    NorwegianSeaPact,
 }
 
 // FIXME: these types are probably wrong.
@@ -30,8 +39,11 @@ impl FromStr for CampaignRegion {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "CHINASEA" => Ok(CampaignRegion::ChinaSea),
-            "NORWEGIANSEA" => Ok(CampaignRegion::NorwegianSea),
+            "CHINA_SEA_NATO" => Ok(CampaignRegion::ChinaSeaNato),
+            "CHINA_SEA_PLAN" => Ok(CampaignRegion::ChinaSeaPlan),
+            "NORWEGIAN_SEA_BRIT" => Ok(CampaignRegion::NorwegianSeaBrit),
+            "NORWEGIAN_SEA_NATO" => Ok(CampaignRegion::NorwegianSeaNato),
+            "NORWEGIAN_SEA_PACT" => Ok(CampaignRegion::NorwegianSeaPact),
             _ => Err(InvalidData::CampaignRegion),
         }
     }
