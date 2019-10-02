@@ -1,7 +1,5 @@
 #[derive(Clone, Debug)]
 enum ParseEvent<'i> {
-    // These fuck up everything and I'm not sure how.
-    // Section(&'i str),
     Property { key: &'i str, value: &'i str },
 }
 
@@ -16,10 +14,6 @@ impl<'i> Iterator for ParseEventIter<'i> {
     fn next(&mut self) -> Option<Self::Item> {
         match self.step {
             0 => match self.event {
-                // ParseEvent::Section(s) => {
-                //     self.step += 1;
-                //     Some(s)
-                // }
                 ParseEvent::Property { key, .. } => {
                     self.step += 1;
                     Some(key)
@@ -27,7 +21,6 @@ impl<'i> Iterator for ParseEventIter<'i> {
             },
 
             1 => match self.event {
-                // ParseEvent::Section(_) => None,
                 ParseEvent::Property { value, .. } => {
                     self.step += 1;
                     Some(value)
@@ -57,11 +50,6 @@ pub fn parse_from_str(s: &str) -> impl Iterator<Item = &str> {
         .filter_map(|line| match line.trim() {
             // Comments
             line if line.starts_with("//") || line.is_empty() => None,
-
-            // Sections
-            // line if line.starts_with('[') && line.ends_with(']') => {
-            //     Some(ParseEvent::Section(&line[1..(line.len() - 1)]))
-            // }
 
             // Properties
             line => {
