@@ -8,6 +8,8 @@ use std::fs;
 use std::path::Path;
 use structopt::StructOpt;
 
+type Result<T, E = error::Error> = std::result::Result<T, E>;
+
 #[derive(Clone, Debug, StructOpt)]
 struct Opt {
     /// Path of the game's default data directory
@@ -16,8 +18,6 @@ struct Opt {
     /// Path of the mod's override directory
     override_path: String,
 }
-
-type Result<T, E = error::Error> = std::result::Result<T, E>;
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "PascalCase")]
