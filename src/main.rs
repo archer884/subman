@@ -1,14 +1,18 @@
 mod ini;
 
 use serde::Deserialize;
+use structopt::StructOpt;
+
+#[derive(Clone, Debug, StructOpt)]
+struct Opt {
+    /// Path of the game's default data directory
+    default_path: String,
+
+    /// Path of the mod's override directory
+    override_path: String,
+}
 
 type Result<T, E = Box<dyn std::error::Error>> = std::result::Result<T, E>;
-
-// Your scientists... Seriously, though, why the fuck did you write an INI reader?
-//
-// I think I have a plan: read from a pair of json files (mission profiles, boat profiles)
-// and use those to generate missions by combining the profile with the existing mission file.
-// You can do the same thing for campaigns, I expect.
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "PascalCase")]
@@ -42,11 +46,41 @@ struct IniMissionProfile {
     player_vessels: String,
 }
 
-fn main() -> Result<()> {
-    let ini_text = include_str!("../resource/the-duel.ini");
-    let profile: IniMissionProfile = ini::from_str(ini_text)?;
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+struct Vessel {
+    // ship_type: String,
+    year: String,
+    // player_fleet_regions: String,
+    // enemy_fleet_regions: String,
+}
 
-    println!("{:#?}", profile);
+fn main() -> Result<()> {
+    // use std::fs;
+
+    // let Opt {
+    //     default_path,
+    //     override_path,
+    // } = Opt::from_args();
+
+    // let default_vessels = default_path + "/vessels";
+    // let override_vessels = override_path + "/vessels";
+
+    // for path in fs::read_dir(default_vessels)? {
+    //     println!("Default: {}", path?.path().display());
+    // }
+
+    // for path in fs::read_dir(override_vessels)? {
+    //     println!("Override: {}", path?.path().display());
+    // }
+
+    // let ini_text = include_str!("../resource/the-duel.ini");
+    // let profile: IniMissionProfile = ini::from_str(ini_text)?;
+    // println!("{:#?}", profile);
+
+    let ini_text = include_str!("../resource/usn_ssn_triton.txt");
+    let vessel: Vessel = ini::from_str(ini_text)?;
+    println!("{:#?}", vessel);
 
     Ok(())
 }
