@@ -1,5 +1,7 @@
 mod ini;
 
+use std::fs;
+use std::path::Path;
 use serde::Deserialize;
 use structopt::StructOpt;
 
@@ -50,37 +52,50 @@ struct IniMissionProfile {
 #[serde(rename_all = "PascalCase")]
 struct Vessel {
     ship_type: String,
-    year: String,
-    player_fleet_regions: String,
-    enemy_fleet_regions: String,
+    // year: String,
+    // player_fleet_regions: String,
+    // enemy_fleet_regions: String,
 }
 
 fn main() -> Result<()> {
-    // use std::fs;
+    let Opt {
+        default_path,
+        override_path,
+    } = Opt::from_args();
 
-    // let Opt {
-    //     default_path,
-    //     override_path,
-    // } = Opt::from_args();
+    let default_vessels = default_path + "/vessels";
+    let override_vessels = override_path + "/vessels";
 
-    // let default_vessels = default_path + "/vessels";
-    // let override_vessels = override_path + "/vessels";
+    for entry in fs::read_dir(default_vessels)? {
+        format_vessel("rel", entry?.path())?;
+    }
 
-    // for path in fs::read_dir(default_vessels)? {
-    //     println!("Default: {}", path?.path().display());
-    // }
+    for entry in fs::read_dir(override_vessels)? {
+        format_vessel("mod", entry?.path())?;
+    }
 
-    // for path in fs::read_dir(override_vessels)? {
-    //     println!("Override: {}", path?.path().display());
-    // }
+    Ok(())
+}
 
-    let ini_text = include_str!("../resource/the-duel.ini");
-    let profile: IniMissionProfile = ini::from_str(ini_text)?;
-    println!("{:#?}", profile);
+fn format_vessel(tag: &str, path: impl AsRef<Path>) -> Result<()> {
+    // Don't bother with directories.
+    let meta = path.as_ref().metadata()?;
+    if meta.file_type().is_dir() {
+        return Ok(());
+    }
 
-    let ini_text = include_str!("../resource/usn_ssn_triton.txt");
-    let vessel: Vessel = ini::from_str(ini_text)?;
-    println!("{:#?}", vessel);
+    // println!("{}", path.as_ref().display());
 
+    // Some of these goddamn files do not contain valid utf-8.
+    // ...Yeah, I didn't believe it either.
+    let content = fs::read(path.as_ref())?;
+    let content = String::from_utf8_lossy(&content);
+    
+    if let Ok(vessel) = ini::from_str::<Vessel>(&content) {
+        // Fucking filenames.
+        let filename = path.as_ref().file_name().unwrap().to_str().unwrap();
+        println!("{} {}: {}", tag, filename, vessel.ship_type);
+    }
+    
     Ok(())
 }
