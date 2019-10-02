@@ -49,10 +49,10 @@ struct IniMissionProfile {
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 struct Vessel {
-    // ship_type: String,
+    ship_type: String,
     year: String,
-    // player_fleet_regions: String,
-    // enemy_fleet_regions: String,
+    player_fleet_regions: String,
+    enemy_fleet_regions: String,
 }
 
 fn main() -> Result<()> {
@@ -74,9 +74,9 @@ fn main() -> Result<()> {
     //     println!("Override: {}", path?.path().display());
     // }
 
-    // let ini_text = include_str!("../resource/the-duel.ini");
-    // let profile: IniMissionProfile = ini::from_str(ini_text)?;
-    // println!("{:#?}", profile);
+    let ini_text = include_str!("../resource/the-duel.ini");
+    let profile: IniMissionProfile = ini::from_str(ini_text)?;
+    println!("{:#?}", profile);
 
     let ini_text = include_str!("../resource/usn_ssn_triton.txt");
     let vessel: Vessel = ini::from_str(ini_text)?;
