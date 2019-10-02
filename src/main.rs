@@ -1,6 +1,8 @@
+mod cw;
 mod error;
 mod ini;
 
+use cw::{Vessel, VesselData};
 use serde::Deserialize;
 use std::fs;
 use std::path::Path;
@@ -49,15 +51,6 @@ struct IniMissionProfile {
     player_vessels: String,
 }
 
-#[derive(Clone, Debug, Deserialize)]
-#[serde(rename_all = "PascalCase")]
-struct Vessel {
-    ship_type: String,
-    // year: String,
-    // player_fleet_regions: String,
-    // enemy_fleet_regions: String,
-}
-
 fn main() -> Result<()> {
     let Opt {
         default_path,
@@ -67,32 +60,38 @@ fn main() -> Result<()> {
     let default_vessels = default_path + "/vessels";
     let override_vessels = override_path + "/vessels";
 
-    for (name, vessel) in read_vessels(default_vessels) {
-        println!("rel {} {}", vessel.ship_type, name);
+    for vessel in read_vessels(default_vessels) {
+        println!("rel {} {}", vessel.ship_type, vessel.key);
     }
 
-    for (name, vessel) in read_vessels(override_vessels) {
-        println!("mod {} {}", vessel.ship_type, name);
+    for vessel in read_vessels(override_vessels) {
+        println!("mod {} {}", vessel.ship_type, vessel.key);
     }
 
     Ok(())
 }
 
-fn read_vessels(path: impl AsRef<Path>) -> impl Iterator<Item = (String, Vessel)> {
+fn read_vessels(path: impl AsRef<Path>) -> impl Iterator<Item = Vessel> {
     walkdir::WalkDir::new(path.as_ref())
         .into_iter()
         .filter_entry(|entry| {
             entry
                 .metadata()
                 .map(|data| data.file_type().is_file())
-                .unwrap_or(false)
+                .unwrap_or_default()
+                && entry
+                    .path()
+                    .extension()
+                    .map(|ext| ext == ".txt")
+                    .unwrap_or_default()
         })
         .filter_map(|entry| load_vessel(entry.ok()?.path()).ok())
 }
 
-fn load_vessel(path: impl AsRef<Path>) -> Result<(String, Vessel)> {
-    let name = path.as_ref().file_name().unwrap().to_string_lossy().into();
-    let content = fs::read(path)?;
+fn load_vessel(path: impl AsRef<Path>) -> Result<Vessel> {
+    let name = path.as_ref().file_name().unwrap().to_string_lossy();
+    let content = fs::read(&path)?;
     let content = String::from_utf8_lossy(&content);
-    Ok((name, ini::from_str(&content)?))
+    let vessel: VesselData = ini::from_str(&content)?;
+    vessel.with_key(name)
 }
