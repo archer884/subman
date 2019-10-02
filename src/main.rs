@@ -1,8 +1,9 @@
+mod error;
 mod ini;
 
+use serde::Deserialize;
 use std::fs;
 use std::path::Path;
-use serde::Deserialize;
 use structopt::StructOpt;
 
 #[derive(Clone, Debug, StructOpt)]
@@ -14,7 +15,7 @@ struct Opt {
     override_path: String,
 }
 
-type Result<T, E = Box<dyn std::error::Error>> = std::result::Result<T, E>;
+type Result<T, E = error::Error> = std::result::Result<T, E>;
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "PascalCase")]
@@ -66,36 +67,32 @@ fn main() -> Result<()> {
     let default_vessels = default_path + "/vessels";
     let override_vessels = override_path + "/vessels";
 
-    for entry in fs::read_dir(default_vessels)? {
-        format_vessel("rel", entry?.path())?;
+    for (name, vessel) in read_vessels(default_vessels) {
+        println!("rel {} {}", vessel.ship_type, name);
     }
 
-    for entry in fs::read_dir(override_vessels)? {
-        format_vessel("mod", entry?.path())?;
+    for (name, vessel) in read_vessels(override_vessels) {
+        println!("mod {} {}", vessel.ship_type, name);
     }
 
     Ok(())
 }
 
-fn format_vessel(tag: &str, path: impl AsRef<Path>) -> Result<()> {
-    // Don't bother with directories.
-    let meta = path.as_ref().metadata()?;
-    if meta.file_type().is_dir() {
-        return Ok(());
-    }
+fn read_vessels(path: impl AsRef<Path>) -> impl Iterator<Item = (String, Vessel)> {
+    walkdir::WalkDir::new(path.as_ref())
+        .into_iter()
+        .filter_entry(|entry| {
+            entry
+                .metadata()
+                .map(|data| data.file_type().is_file())
+                .unwrap_or(false)
+        })
+        .filter_map(|entry| load_vessel(entry.ok()?.path()).ok())
+}
 
-    // println!("{}", path.as_ref().display());
-
-    // Some of these goddamn files do not contain valid utf-8.
-    // ...Yeah, I didn't believe it either.
-    let content = fs::read(path.as_ref())?;
+fn load_vessel(path: impl AsRef<Path>) -> Result<(String, Vessel)> {
+    let name = path.as_ref().file_name().unwrap().to_string_lossy().into();
+    let content = fs::read(path)?;
     let content = String::from_utf8_lossy(&content);
-    
-    if let Ok(vessel) = ini::from_str::<Vessel>(&content) {
-        // Fucking filenames.
-        let filename = path.as_ref().file_name().unwrap().to_str().unwrap();
-        println!("{} {}: {}", tag, filename, vessel.ship_type);
-    }
-    
-    Ok(())
+    Ok((name, ini::from_str(&content)?))
 }
