@@ -11,16 +11,38 @@ use structopt::StructOpt;
 type Result<T, E = error::Error> = std::result::Result<T, E>;
 
 #[derive(Clone, Debug, StructOpt)]
-struct Opt {
-    /// Path of the game's default data directory
+struct Paths {
     default_path: String,
-
-    /// Path of the mod's override directory
     override_path: String,
 }
 
+#[derive(Clone, Debug, StructOpt)]
+enum Opt {
+    Missions(Paths),
+    Traffic(Paths),
+}
+
+impl Opt {
+    fn into_paths(self) -> (String, String) {
+        match self {
+            Opt::Missions(paths) | Opt::Traffic(paths) => {
+                let Paths { default_path, override_path } = paths;
+                (default_path, override_path)
+            }
+        }
+    }
+}
+
 fn main() -> Result<()> {
-    let Opt { override_path, .. } = Opt::from_args();
+    use cw::MissionProfileData;
+
+    let content = include_str!("../resource/the-duel.ini");
+    let mission: MissionProfileData = ini::from_str(content)?;
+    let mission = mission.into_profile()?;
+
+    println!("{:#?}", mission);
+    
+    let (_default_path, override_path) = Opt::from_args().into_paths();
 
     let vessels: Vec<_> = cw::default_vessels().collect();
     let override_vessels: Vec<_> = read_vessels(override_path + "/vessels").collect();

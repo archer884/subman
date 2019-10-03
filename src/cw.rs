@@ -2,6 +2,7 @@ mod mission;
 mod poly;
 mod vessel;
 
+pub use mission::{MissionProfile, MissionProfileData};
 pub use poly::default_vessels;
 use std::fmt::{self, Display};
 use std::str::FromStr;
