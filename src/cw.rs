@@ -12,6 +12,7 @@ pub use vessel::{Vessel, VesselData};
 /// China Sea region does not have a suffix because the opposing force for all Chinese
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
 pub enum CampaignRegion {
+    All,
     ChinaSeaNato,
     ChinaSeaPlan,
     NorwegianSeaBrit,
@@ -22,9 +23,10 @@ pub enum CampaignRegion {
 // FIXME: these types are probably wrong.
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
 pub enum ShipType {
+    Capital,
+    Escort,
     Merchant,
     Submarine,
-    Surface,
 }
 
 #[derive(Debug)]
@@ -39,6 +41,7 @@ impl FromStr for CampaignRegion {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
+            "*" => Ok(CampaignRegion::All),
             "CHINA_SEA_NATO" => Ok(CampaignRegion::ChinaSeaNato),
             "CHINA_SEA_PLAN" => Ok(CampaignRegion::ChinaSeaPlan),
             "NORWEGIAN_SEA_BRIT" => Ok(CampaignRegion::NorwegianSeaBrit),
@@ -54,6 +57,9 @@ impl FromStr for ShipType {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
+            "CAPITAL" => Ok(ShipType::Capital),
+            "ESCORT" => Ok(ShipType::Escort),
+            "MERCHANT" => Ok(ShipType::Merchant),
             "SUBMARINE" => Ok(ShipType::Submarine),
             _ => Err(InvalidData::ShipType),
         }
