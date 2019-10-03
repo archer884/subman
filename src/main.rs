@@ -26,7 +26,10 @@ impl Opt {
     fn into_paths(self) -> (String, String) {
         match self {
             Opt::Missions(paths) | Opt::Traffic(paths) => {
-                let Paths { default_path, override_path } = paths;
+                let Paths {
+                    default_path,
+                    override_path,
+                } = paths;
                 (default_path, override_path)
             }
         }
@@ -41,7 +44,7 @@ fn main() -> Result<()> {
     let mission = mission.into_profile()?;
 
     println!("{:#?}", mission);
-    
+
     let (_default_path, override_path) = Opt::from_args().into_paths();
 
     let vessels: Vec<_> = cw::default_vessels().collect();
