@@ -43,13 +43,13 @@ impl FromStr for CampaignRegion {
     type Err = InvalidData;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "*" => Ok(CampaignRegion::All),
-            "CHINA_SEA_NATO" => Ok(CampaignRegion::ChinaSeaNato),
-            "CHINA_SEA_PLAN" => Ok(CampaignRegion::ChinaSeaPlan),
-            "NORWEGIAN_SEA_BRIT" => Ok(CampaignRegion::NorwegianSeaBrit),
-            "NORWEGIAN_SEA_NATO" => Ok(CampaignRegion::NorwegianSeaNato),
-            "NORWEGIAN_SEA_PACT" => Ok(CampaignRegion::NorwegianSeaPact),
+        match s.to_ascii_uppercase().as_ref() {
+            "*" | "ALL" => Ok(CampaignRegion::All),
+            "CHINA_SEA_NATO" | "CHINASEANATO" => Ok(CampaignRegion::ChinaSeaNato),
+            "CHINA_SEA_PLAN" | "CHINASEAPLAN" => Ok(CampaignRegion::ChinaSeaPlan),
+            "NORWEGIAN_SEA_BRIT" | "NORWEGIANSEABRIT" => Ok(CampaignRegion::NorwegianSeaBrit),
+            "NORWEGIAN_SEA_NATO" | "NORWEGIANSEANATO" => Ok(CampaignRegion::NorwegianSeaNato),
+            "NORWEGIAN_SEA_PACT" | "NORWEGIANSEAPACT" => Ok(CampaignRegion::NorwegianSeaPact),
             _ => Err(InvalidData::CampaignRegion),
         }
     }
@@ -59,7 +59,7 @@ impl FromStr for ShipType {
     type Err = InvalidData;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
+        match s.to_ascii_uppercase().as_ref() {
             "CAPITAL" => Ok(ShipType::Capital),
             "ESCORT" => Ok(ShipType::Escort),
             "MERCHANT" => Ok(ShipType::Merchant),
