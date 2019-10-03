@@ -3,11 +3,10 @@ mod error;
 mod ini;
 
 use cw::{Vessel, VesselData};
-use serde::Deserialize;
+use hashbrown::HashMap;
 use std::fs;
 use std::path::Path;
 use structopt::StructOpt;
-use hashbrown::HashMap;
 
 type Result<T, E = error::Error> = std::result::Result<T, E>;
 
@@ -20,47 +19,13 @@ struct Opt {
     override_path: String,
 }
 
-#[derive(Clone, Debug, Deserialize)]
-#[serde(rename_all = "PascalCase")]
-struct IniMissionProfile {
-    use_terrain: String,
-    map_coordinates: String,
-    map_navigation_data: String,
-    map_elevation_data: String,
-    world_objects_data: String,
-    vessels_and_traffic: String,
-    date: String,
-    hemisphere: String,
-    time: String,
-    use_preset_environment: String,
-    weather: String,
-    sea_state: String,
-    duct_strength: String,
-    layer_strength: String,
-    number_of_enemy_units: String,
-
-    // Renamed explicitly because BRITS CANNOT SPELL.
-    #[serde(rename = "CombatBehaviour")]
-    combat_behavior: String,
-
-    enemy_ship_classes: String,
-    formation_cruise_speed: String,
-    number_of_helicopters: String,
-    helicopter_type: String,
-    number_of_aircraft: String,
-    aircraft_type: String,
-    player_vessels: String,
-}
-
 fn main() -> Result<()> {
-    let Opt {
-        override_path,
-        ..
-    } = Opt::from_args();
+    let Opt { override_path, .. } = Opt::from_args();
 
     let vessels: Vec<_> = cw::default_vessels().collect();
     let override_vessels: Vec<_> = read_vessels(override_path + "/vessels").collect();
-    let mut vessels_by_key: HashMap<_, _> = vessels.iter().map(|vessel| (&vessel.key, vessel)).collect();
+    let mut vessels_by_key: HashMap<_, _> =
+        vessels.iter().map(|vessel| (&vessel.key, vessel)).collect();
 
     override_vessels.iter().for_each(|vessel| {
         vessels_by_key
@@ -80,7 +45,7 @@ fn read_vessels(path: impl AsRef<Path>) -> impl Iterator<Item = Vessel> {
     fn is_text_file(path: &Path) -> bool {
         path.extension().map(|x| x == "txt").unwrap_or_default()
     }
-    
+
     walkdir::WalkDir::new(path.as_ref())
         .max_depth(1)
         .into_iter()

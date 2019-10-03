@@ -1,10 +1,11 @@
+mod mission;
 mod poly;
 mod vessel;
 
+pub use poly::default_vessels;
 use std::fmt::{self, Display};
 use std::str::FromStr;
 pub use vessel::{Vessel, VesselData};
-pub use poly::default_vessels;
 
 /// Campaign regions
 ///
