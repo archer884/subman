@@ -14,6 +14,7 @@ type Result<T, E = error::Error> = std::result::Result<T, E>;
 struct Paths {
     default_path: String,
     override_path: String,
+    output_path: Option<String>,
 }
 
 #[derive(Clone, Debug, StructOpt)]
@@ -23,15 +24,9 @@ enum Opt {
 }
 
 impl Opt {
-    fn into_paths(self) -> (String, String) {
+    fn into_paths(self) -> Paths {
         match self {
-            Opt::Missions(paths) | Opt::Traffic(paths) => {
-                let Paths {
-                    default_path,
-                    override_path,
-                } = paths;
-                (default_path, override_path)
-            }
+            Opt::Missions(paths) | Opt::Traffic(paths) => paths,
         }
     }
 }
@@ -45,7 +40,7 @@ fn main() -> Result<()> {
 
     println!("{:#?}", mission);
 
-    let (_default_path, override_path) = Opt::from_args().into_paths();
+    let Paths { override_path, .. } = Opt::from_args().into_paths();
 
     let vessels: Vec<_> = cw::default_vessels().collect();
     let override_vessels: Vec<_> = read_vessels(override_path + "/vessels").collect();
