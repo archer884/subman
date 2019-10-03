@@ -1,5 +1,9 @@
 use crate::cw::{CampaignRegion, ShipType, Vessel};
 
+// FIXME: Probably a lot of these subs do not need polyfills, because they (in particular the
+// Warsaw Pact equipment) are part of the playable subs mod. We should just make it so that any
+// data from a sub data file overrides any data found in this polyfill data set.
+
 // This registry provides vessel metadata for those vessels which shipped with the original game.
 // It is NOT necessary to add mod vessels to this list. Because this polyfill registry exists, it
 // is also not necessary to actually read the default vessels directory.
@@ -7,7 +11,7 @@ use crate::cw::{CampaignRegion, ShipType, Vessel};
 // Note that, generally, dates given here are the year a class was first commissioned. Submarines
 // such as Sturgeon, which received significant mid-life upgrades, are given two dates: the
 // original commission date and the date of their second campaign.
-fn default_vessels() -> impl Iterator<Item = Vessel> {
+pub fn default_vessels() -> impl Iterator<Item = Vessel> {
     static SOURCE_DATA: &[(&str, u16, ShipType, &[CampaignRegion])] = &[
         (
             "civ_fv_trawler",

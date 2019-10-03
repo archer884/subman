@@ -2,6 +2,7 @@ use crate::cw::{CampaignRegion, InvalidData, ShipType};
 use hashbrown::HashSet;
 use serde::Deserialize;
 
+#[derive(Clone, Debug)]
 pub struct Vessel {
     pub key: String,
     pub year: u16,
